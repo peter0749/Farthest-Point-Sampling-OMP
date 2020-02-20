@@ -3,6 +3,8 @@
 /*System*/
 // #include <unordered_set>
 #include <random>
+#include <cfloat>
+#include <algorithm>
 #ifdef USE_OMP
 #include <omp.h>
 #endif

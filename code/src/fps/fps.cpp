@@ -22,10 +22,16 @@ std::vector<int> farthest_point_sampling(const Eigen::MatrixXd &pts, int M) {
         #endif
         for (int k=0; k<N; ++k) {
             if (in_set.count(k)>0) continue;
-            float dist = (pts.row(old_idx)-pts.row(k)).norm();
-            if (dist>best.second) {
+            float min_dist = FLT_MAX;
+            for (auto v_in : in_set) {
+                float dist = (pts.row(v_in)-pts.row(k)).norm();
+                if (dist<min_dist) {
+                    min_dist = dist;
+                }
+            }
+            if (min_dist>best.second) {
                 best.first = k;
-                best.second = dist;
+                best.second = min_dist;
             }
         }
         in_set.insert(best.first);
@@ -61,10 +67,16 @@ std::vector<int> farthest_point_sampling(const Eigen::MatrixXd &pts, const std::
         #endif
         for (int m=0; m<N; ++m) {
             if (in_set.count(m)>0) continue;
-            float dist = (pts.row(mask[old_idx])-pts.row(mask[m])).norm();
-            if (dist>best.second) {
+            float min_dist = FLT_MAX;
+            for (auto v_in : in_set) {
+                float dist = (pts.row(mask[v_in])-pts.row(mask[m])).norm();
+                if (dist<min_dist) {
+                    min_dist = dist;
+                }
+            }
+            if (min_dist>best.second) {
                 best.first = m;
-                best.second = dist;
+                best.second = min_dist;
             }
         }
         in_set.insert(best.first);
