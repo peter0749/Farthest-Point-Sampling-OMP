@@ -1,8 +1,29 @@
 cmake_minimum_required(VERSION 2.8)
 project(fps)
 
-set(CMAKE_CXX_STANDARD 11)
+SET(PACKAGE_VERSION "0.0.1")
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+LIST( APPEND CMAKE_MODULE_PATH
+  ${CMAKE_SOURCE_DIR}/cmake
+  ${CMAKE_SOURCE_DIR}/cmake/Modules
+)
+
+INCLUDE( CheckCXXCompilerFlag  )
+
+FILE( GLOB filenames "cmake/Macros/*.cmake"  )
+FOREACH( filename ${filenames}  )
+  INCLUDE( ${filename}  )
+ENDFOREACH()
+
+add_subdirectory(pybind11)
+FIND_PACKAGE(PythonInterp 3)
+FIND_PACKAGE(PythonLibs   3)
+INCLUDE_DIRECTORIES(
+    ${PYTHON_INCLUDE_DIRS}
+    ${PYBIND11_INCLUDE_DIRS}
+)
 
 # Eigen library
 find_package (Eigen3 REQUIRED)
@@ -52,11 +73,20 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_COMPILE_FLAGS_M} ${EXTRA_CXX_FLAG}
 include_directories(include)
 
 # Other libraries
-add_library(${PROJECT_NAME}_farthest_point_sampling src/${PROJECT_NAME}/fps.cpp)
+add_library(${PROJECT_NAME}_farthest_point_sampling SHARED src/${PROJECT_NAME}/fps.cpp)
 if (USE_OMP)
   target_compile_definitions(${PROJECT_NAME}_farthest_point_sampling PRIVATE USE_OMP)
 endif()
 
+ADD_LIBRARY( ${PROJECT_NAME}_python SHARED src/fps_python.cpp )
+target_link_libraries(${PROJECT_NAME}_python
+                      ${PROJECT_NAME}_farthest_point_sampling
+                     )
+SET_TARGET_PROPERTIES( ${PROJECT_NAME}_python
+  PROPERTIES OUTPUT_NAME fps
+  PREFIX ""
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/fps"
+)
 
 # This executable is for testing the shared library
 add_executable(${PROJECT_NAME}_example src/example.cpp)
@@ -70,10 +100,10 @@ set_target_properties(${PROJECT_NAME}_example
                       PROPERTIES OUTPUT_NAME example
                       PREFIX "")
 
-# Set the location for library installation (/usr/lib in this case is not really necessary)
-# Use "sudo make install" to apply
-install(TARGETS ${PROJECT_NAME}_example
-        DESTINATION lib)
+CONFIGURE_FILE( fps/__init__.py
+  ${CMAKE_CURRENT_BINARY_DIR}/fps/__init__.py
+)
 
-install(DIRECTORY include/gpg DESTINATION include)
-
+CONFIGURE_FILE( fps/setup.py
+  ${CMAKE_CURRENT_BINARY_DIR}/fps/setup.py
+)
