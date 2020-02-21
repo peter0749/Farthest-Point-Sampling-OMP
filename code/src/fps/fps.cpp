@@ -36,23 +36,10 @@ std::vector<int> farthest_point_sampling(const Eigen::MatrixXd &pts, int M) {
         }
         int best_index = 0;
         float best_dist = dist_vector[0];
-        #pragma omp parallel
-        {
-            int index_local = best_index;
-            float best_local = best_dist;  
-            #pragma omp for nowait
-            for (int i=1; i<dist_vector.size(); ++i) {
-                if (dist_vector[i]>best_local) {
-                    best_local = dist_vector[i];
-                    index_local = i;
-                }
-            }
-            #pragma omp critical 
-            {
-                if (best_local>best_dist) {
-                    best_dist = best_local;
-                    best_index = index_local;
-                }
+        for (int i=1; i<dist_vector.size(); ++i) {
+            if (dist_vector[i]>best_dist) {
+                best_dist = dist_vector[i];
+                best_index = i;
             }
         }
         in_set.insert(best_index);
@@ -99,23 +86,10 @@ std::vector<int> farthest_point_sampling(const Eigen::MatrixXd &pts, const std::
         }
         int best_index = 0;
         float best_dist = dist_vector[0];
-        #pragma omp parallel
-        {
-            int index_local = best_index;
-            float best_local = best_dist;  
-            #pragma omp for nowait
-            for (int i=1; i<dist_vector.size(); ++i) {
-                if (dist_vector[i]>best_local) { // find farthest point
-                    best_local = dist_vector[i];
-                    index_local = i;
-                }
-            }
-            #pragma omp critical 
-            {
-                if (best_local>best_dist) {
-                    best_dist = best_local;
-                    best_index = index_local;
-                }
+        for (int i=1; i<dist_vector.size(); ++i) {
+            if (dist_vector[i]>best_dist) {
+                best_dist = dist_vector[i];
+                best_index = i;
             }
         }
         in_set.insert(best_index);
